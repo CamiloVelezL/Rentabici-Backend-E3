@@ -1,4 +1,5 @@
 ﻿namespace RentabiciBackend.Models;
+
 public class Incidencia
 {
     public int Id { get; set; }

@@ -2,6 +2,7 @@
 using RentabiciBackend.Data;
 using RentabiciBackend.Models;
 
+
 namespace RentabiciBackend.Controllers;
 
 [ApiController]

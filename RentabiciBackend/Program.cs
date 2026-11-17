@@ -3,7 +3,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 1. Configurar Swagger
+// 1. Configuracion del  Swagger
 builder.Services.AddSwaggerGen();
 
 // 2. Inyección de dependencias
@@ -13,7 +13,7 @@ builder.Services.AddScoped<RentabiciBackend.Services.IRentalService, RentabiciBa
 
 var app = builder.Build();
 
-// 3. Activar Swagger en desarrollo
+// 3. Activar Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

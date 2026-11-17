@@ -1,6 +1,5 @@
 ﻿using RentabiciBackend.Models;
 namespace RentabiciBackend.Data;
-
 public class MemoryDatabase
 {
     public List<Bicicleta> Bicicletas { get; set; } = new()
