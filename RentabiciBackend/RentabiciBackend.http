@@ -1,0 +1,6 @@
+@RentabiciBackend_HostAddress = http://localhost:5181
+
+GET {{RentabiciBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
