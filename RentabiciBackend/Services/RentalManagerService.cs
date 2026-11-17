@@ -1,5 +1,6 @@
 ﻿using RentabiciBackend.Data;
 namespace RentabiciBackend.Services;
+
 public class RentalManagerService
 {
     private readonly MemoryDatabase _db;

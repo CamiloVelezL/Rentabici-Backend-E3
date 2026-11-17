@@ -1,5 +1,6 @@
 ﻿using RentabiciBackend.Data;
 namespace RentabiciBackend.Services;
+
 public class RentalServiceProxy : IRentalService
 {
     private readonly RentalManagerService _manager;

@@ -3,7 +3,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 1. Configuracion del  Swagger
+// 1. Configuracion del Swagger
 builder.Services.AddSwaggerGen();
 
 // 2. Inyección de dependencias

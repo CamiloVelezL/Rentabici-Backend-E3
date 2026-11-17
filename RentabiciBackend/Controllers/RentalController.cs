@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RentabiciBackend.Services;
 
-
 namespace RentabiciBackend.Controllers;
 
 [ApiController]
