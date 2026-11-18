@@ -41,8 +41,18 @@ public class RentalController : ApiControllerBase
 
     /// <summary>Pantalla "Recibir bicicleta" (QR).</summary>
     [HttpPost("alquileres")]
-    public IActionResult Iniciar([FromBody] IniciarAlquilerRequest r) =>
-        StatusCode(201, new Respuesta<Alquiler>("Bicicleta recibida. ¡Buen viaje!", _alquiler.IniciarAlquiler(UsuarioActual.Id, r.BicicletaId)));
+    public IActionResult Iniciar([FromBody] IniciarAlquilerRequest r)
+    {
+        try
+        {
+            var alquiler = _alquiler.IniciarAlquiler(UsuarioActual.Id, r.BicicletaId);
+            return StatusCode(201, new Respuesta<Alquiler>("Bicicleta recibida. ¡Buen viaje!", alquiler));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error interno: {ex.Message}");
+        }
+    }
 
     /// <summary>Botón "Entregar" de "Administrar reservas".</summary>
     [HttpPost("alquileres/{id:int}/devolucion")]
