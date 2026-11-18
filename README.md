@@ -8,8 +8,6 @@ reportar fallas y gestionar estaciones, flota, roles y mantenimiento.
 
 ## Integrantes
 
-| Integrante |
-|---|---|---|
 | Camilo Andrés Vélez Luna |
 
 | Samuel Castro Bedoya |
