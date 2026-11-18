@@ -11,6 +11,7 @@ public class RentalManagerService
         var bici = _db.Bicicletas.FirstOrDefault(b => b.Id == bicicletaId);
         if (bici == null) return "Bicicleta no encontrada";
         if (bici.Estado != "Disponible") return "Bicicleta no disponible";
+        if (bici.Estado == "EnMantenimiento") return "ERROR: Bicicleta en mantenimiento";
 
         bici.Estado = "Alquilada";
         return "Alquiler exitoso";

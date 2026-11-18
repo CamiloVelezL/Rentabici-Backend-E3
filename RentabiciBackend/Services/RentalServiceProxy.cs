@@ -10,7 +10,7 @@ public class RentalServiceProxy : IRentalService
     {
         _manager = manager; _db = db;
     }
-
+// Patrón Proxy: Intercepta la petición para validar que el usuario no tenga multas antes de llamar al servicio real.
     public string ProcesarAlquiler(int usuarioId, int bicicletaId)
     {
         var user = _db.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
