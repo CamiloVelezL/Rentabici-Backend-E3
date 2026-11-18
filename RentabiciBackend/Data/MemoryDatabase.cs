@@ -11,7 +11,8 @@ public class MemoryDatabase
     public List<Usuario> Usuarios { get; set; } = new()
     {
         new() { Id = 1, Nombre = "Juan", TieneMulta = false },
-        new() { Id = 2, Nombre = "Pedro", TieneMulta = true }
+        new() { Id = 2, Nombre = "Pedro", TieneMulta = true },
+        new() { Id = 3, Nombre = "Ana", TieneMulta = false }
     };
     public List<Incidencia> Incidencias { get; set; } = new();
 }
