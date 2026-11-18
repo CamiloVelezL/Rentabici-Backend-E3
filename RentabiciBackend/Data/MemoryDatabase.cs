@@ -1,6 +1,8 @@
 ﻿using RentabiciBackend.Models;
 namespace RentabiciBackend.Data;
-
+/// <summary>
+/// Simula el almacenamiento en memoria de usuarios, bicicletas y alquileres para el MVP.
+/// </summary>
 public class MemoryDatabase
 {
     public List<Bicicleta> Bicicletas { get; set; } = new()
@@ -10,8 +12,12 @@ public class MemoryDatabase
     };
     public List<Usuario> Usuarios { get; set; } = new()
     {
+        /// <summary>
+        /// Colección en memoria de usuarios precargados para pruebas funcionales del MVP.
+        /// </summary>
         new() { Id = 1, Nombre = "Juan", TieneMulta = false },
-        new() { Id = 2, Nombre = "Pedro", TieneMulta = true }
+        new() { Id = 2, Nombre = "Pedro", TieneMulta = true },
+        new() { Id = 3, Nombre = "Ana", TieneMulta = false }
     };
     public List<Incidencia> Incidencias { get; set; } = new();
 }
