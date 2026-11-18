@@ -74,4 +74,10 @@ public class NotificationController : ApiControllerBase
             return Ok(new Respuesta<IEnumerable<Notificacion>>("OK",
                 _db.Notificaciones.Where(n => n.UsuarioId == UsuarioActual.Id).OrderByDescending(n => n.Fecha).Take(30).ToList()));
     }
+
+
+    if (string.IsNullOrWhiteSpace(descripcion)) 
+    return BadRequest("La descripción no puede estar vacía");
+
+
 }
