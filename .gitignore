@@ -424,3 +424,6 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# RentaBici: datos guardados por el backend en ejecución (no se versionan)
+RentabiciBackend/App_Data/
