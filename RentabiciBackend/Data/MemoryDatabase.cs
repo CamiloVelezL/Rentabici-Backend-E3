@@ -12,6 +12,9 @@ public class MemoryDatabase
     };
     public List<Usuario> Usuarios { get; set; } = new()
     {
+        /// <summary>
+        /// Colección en memoria de usuarios precargados para pruebas funcionales del MVP.
+        /// </summary>
         new() { Id = 1, Nombre = "Juan", TieneMulta = false },
         new() { Id = 2, Nombre = "Pedro", TieneMulta = true },
         new() { Id = 3, Nombre = "Ana", TieneMulta = false }
