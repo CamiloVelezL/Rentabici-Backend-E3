@@ -11,9 +11,13 @@ reportar fallas y gestionar estaciones, flota, roles y mantenimiento.
 | Integrante |
 |---|---|---|
 | Camilo Andrés Vélez Luna |
+
 | Samuel Castro Bedoya |
+
 | Davidson Osorio Noreña | 
+
 | Edison Stiven López Galeano | 
+
 | Eloisa Ospina Isaza| 
 
 ## Tecnologías
