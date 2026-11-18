@@ -8,9 +8,9 @@ reportar fallas y gestionar estaciones, flota, roles y mantenimiento.
 
 ## Integrantes
 
-| Integrante | Usuario GitHub | Principales contribuciones |
+| Integrante |
 |---|---|---|
-| Camilo Andrés Vélez Luna | 
+| Camilo Andrés Vélez Luna |
 | Samuel Castro Bedoya |
 | Davidson Osorio Noreña | 
 | Edison Stiven López Galeano | 
