@@ -1,6 +1,8 @@
 ﻿using RentabiciBackend.Models;
 namespace RentabiciBackend.Data;
-
+/// <summary>
+/// Simula el almacenamiento en memoria de usuarios, bicicletas y alquileres para el MVP.
+/// </summary>
 public class MemoryDatabase
 {
     public List<Bicicleta> Bicicletas { get; set; } = new()
