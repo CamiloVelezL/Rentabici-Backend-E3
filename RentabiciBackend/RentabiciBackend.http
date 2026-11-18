@@ -1,6 +1,353 @@
-@RentabiciBackend_HostAddress = http://localhost:5181
+### =====================================================================
+### RentaBici – pruebas de flujos principales (FP) y alternativos (FA)
+### Ejecutar en VS Code (extensión REST Client) o Visual Studio, en orden.
+### Usuarios (contraseña 12345): sam (Administrador), sam2 (Usuario),
+### sam3 (Técnico), pedro (Usuario con multa y un viaje en curso)
+### Los datos se guardan en App_Data/rentabici-datos.json. Para empezar de cero con los
+### datos de prueba: detener el backend, borrar ese archivo y volver a ejecutarlo.
+### =====================================================================
+@host = http://localhost:5181
 
-GET {{RentabiciBackend_HostAddress}}/weatherforecast/
-Accept: application/json
+### ---------- ÉPICA 1: Usuarios, roles y autenticación ----------
+
+### FP-1.1 Registro correcto (201, rol Usuario)
+POST {{host}}/api/auth/registro
+Content-Type: application/json
+
+{ "nombre": "María", "apellidos": "Gómez", "documento": "1035123456", "email": "maria@correo.com", "password": "maria123" }
+
+### FA-1.1 Registro con datos inválidos (400 VALIDACION)
+POST {{host}}/api/auth/registro
+Content-Type: application/json
+
+{ "nombre": "M", "apellidos": "", "documento": "12A", "email": "no-es-correo", "password": "12" }
+
+### FA-1.2 Documento duplicado (409 DOCUMENTO_DUPLICADO)
+POST {{host}}/api/auth/registro
+Content-Type: application/json
+
+{ "nombre": "Otro", "apellidos": "Usuario", "documento": "1000000002", "email": "otro@correo.com", "password": "12345" }
+
+### FP-1.2 Login sam2 (Usuario)
+# @name loginUsuario
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "usuario": "sam2", "password": "12345" }
 
 ###
+@tokenUsuario = {{loginUsuario.response.body.$.datos.token}}
+
+### FA-1.3 Contraseña incorrecta (401 CREDENCIALES_INVALIDAS)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "usuario": "sam2", "password": "malaclave" }
+
+### FA-1.4 Sin token (401 NO_AUTENTICADO)
+GET {{host}}/api/estaciones
+
+### FA-1.5 Usuario sin rol de administrador intenta agregar estación (403 ACCESO_DENEGADO)
+POST {{host}}/api/estaciones
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "nombre": "Estación 5", "direccion": "Calle x5", "capacidad": 10 }
+
+### Login administrador
+# @name loginAdmin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "usuario": "sam", "password": "12345" }
+
+###
+@tokenAdmin = {{loginAdmin.response.body.$.datos.token}}
+
+### FP-1.3 Gestión de roles: listar usuarios
+GET {{host}}/api/usuarios
+Authorization: Bearer {{tokenAdmin}}
+
+### FA-1.6 El administrador intenta cambiar su propio rol (409 CAMBIO_PROPIO_ROL)
+PUT {{host}}/api/usuarios/1/rol
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "idRol": 3 }
+
+### ---------- ÉPICA 2: Estaciones y flota ----------
+
+### FP-2.1 Consultar estaciones con disponibilidad
+GET {{host}}/api/estaciones
+Authorization: Bearer {{tokenUsuario}}
+
+### FP-2.2 Agregar estación pequeña (para demostrar RN-03)
+POST {{host}}/api/estaciones
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "nombre": "Estación 5", "direccion": "Calle x5", "capacidad": 1 }
+
+### FA-2.1 Nombre de estación repetido (409 ESTACION_DUPLICADA)
+POST {{host}}/api/estaciones
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "nombre": "Estación 1", "direccion": "Otra calle", "capacidad": 5 }
+
+### FP-2.3 Agregar bicicleta en la Estación 5 (201)
+POST {{host}}/api/bicicletas
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "modelo": "Modelo 1", "estacionId": 5 }
+
+### FA-2.2 Estación llena (409 ESTACION_LLENA, RN-03)
+POST {{host}}/api/bicicletas
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "modelo": "Modelo 1", "estacionId": 5 }
+
+### ---------- ÉPICA 3: Reserva, recibir y entregar ----------
+
+### FA-3.1 Reservar en estación cerrada (409 ESTACION_CERRADA)
+POST {{host}}/api/reservas
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "estacionId": 4, "modelo": "Modelo 1", "fechaUso": "31/12/2026", "telefono": "3001234567", "tiempoMinutos": 30 }
+
+### FA-3.2 Fecha inexistente (400 VALIDACION)
+POST {{host}}/api/reservas
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "estacionId": 1, "modelo": "Modelo 1", "fechaUso": "31/02/2027", "telefono": "3001234567", "tiempoMinutos": 30 }
+
+### FP-3.1 Reservar Modelo 1 en Estación 1 (201)
+# @name reserva
+POST {{host}}/api/reservas
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "estacionId": 1, "modelo": "Modelo 1", "fechaUso": "31/12/2026", "telefono": "3001234567", "tiempoMinutos": 60 }
+
+###
+@bicicletaReservada = {{reserva.response.body.$.datos.bicicletaId}}
+
+### FA-3.3 Segunda reserva (409 LIMITE_ACTIVO, RN-01)
+POST {{host}}/api/reservas
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "estacionId": 2, "modelo": "Modelo 2", "fechaUso": "31/12/2026", "telefono": "3001234567", "tiempoMinutos": 30 }
+
+### FA-3.4 Alquilar una bicicleta en mantenimiento (409 TRANSICION_INVALIDA, patrón State)
+POST {{host}}/api/alquileres
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "bicicletaId": 2 }
+
+### FP-3.2 Recibir la bicicleta reservada (201)
+# @name alquiler
+POST {{host}}/api/alquileres
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "bicicletaId": {{bicicletaReservada}} }
+
+###
+@alquilerId = {{alquiler.response.body.$.datos.id}}
+
+### FP-3.3 Entregar con 150 min simulados → recargo por demora (Strategy, RN-06)
+POST {{host}}/api/alquileres/{{alquilerId}}/devolucion
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "minutosSimulados": 150 }
+
+### FA-3.5 Nueva reserva con saldo pendiente (403 USUARIO_CON_SALDO, RN-04)
+POST {{host}}/api/reservas
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "estacionId": 2, "modelo": "Modelo 2", "fechaUso": "31/12/2026", "telefono": "3001234567", "tiempoMinutos": 30 }
+
+### Login pedro (multa + viaje en curso con la bicicleta 4)
+# @name loginPedro
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "usuario": "pedro", "password": "12345" }
+
+###
+@tokenPedro = {{loginPedro.response.body.$.datos.token}}
+
+### FA-3.6 Usuario con multa intenta alquilar (403 USUARIO_CON_MULTA, Proxy)
+POST {{host}}/api/alquileres
+Authorization: Bearer {{tokenPedro}}
+Content-Type: application/json
+
+{ "bicicletaId": 6 }
+
+### FP-3.4 Aun con multa, pedro SÍ puede entregar la bicicleta (el Proxy no bloquea devoluciones)
+POST {{host}}/api/alquileres/1/devolucion
+Authorization: Bearer {{tokenPedro}}
+Content-Type: application/json
+
+{ }
+
+### ---------- ÉPICA 5: Pagos y multas (código de factura) ----------
+
+### FP-5.1 Pendientes de sam2: filas Alquiler/Multa, total y código de factura
+# @name pendientes
+GET {{host}}/api/pagos/pendientes
+Authorization: Bearer {{tokenUsuario}}
+
+###
+@codigoFactura = {{pendientes.response.body.$.datos.codigoFactura}}
+
+### FA-5.1 Código con formato inválido (400 VALIDACION)
+POST {{host}}/api/pagos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "codigoFactura": "12345" }
+
+### FA-5.2 Factura que no existe (404 FACTURA_NO_EXISTE)
+POST {{host}}/api/pagos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "codigoFactura": "RB-9999" }
+
+### Pendientes de pedro (genera su factura por la multa y el viaje)
+# @name pendientesPedro
+GET {{host}}/api/pagos/pendientes
+Authorization: Bearer {{tokenPedro}}
+
+###
+@facturaPedro = {{pendientesPedro.response.body.$.datos.codigoFactura}}
+
+### FA-5.3 sam2 intenta pagar la factura de pedro (403 ACCESO_DENEGADO)
+POST {{host}}/api/pagos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "codigoFactura": "{{facturaPedro}}" }
+
+### FP-5.2 Pago con su código (Facade) → el usuario queda desbloqueado
+POST {{host}}/api/pagos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "codigoFactura": "{{codigoFactura}}" }
+
+### FA-5.4 Pagar otra vez la misma factura (409 FACTURA_YA_PAGADA)
+POST {{host}}/api/pagos
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "codigoFactura": "{{codigoFactura}}" }
+
+### FP-5.3 Comprobante recibido (Factory Method)
+GET {{host}}/api/notificaciones
+Authorization: Bearer {{tokenUsuario}}
+
+### ---------- ÉPICA 4: Incidencias y mantenimiento ----------
+
+### FA-4.1 Bicicleta que no está en la estación indicada (409 BICICLETA_NO_ESTA_EN_ESTACION)
+POST {{host}}/api/incidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "bicicletaId": 8, "estacionId": 1, "gravedad": "Leve" }
+
+### FA-4.2 Gravedad inválida (400 VALIDACION)
+POST {{host}}/api/incidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "bicicletaId": 8, "estacionId": 3, "gravedad": "Terrible" }
+
+### FP-4.1 Reporte Leve → la bicicleta 8 queda En revisión
+POST {{host}}/api/incidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "bicicletaId": 8, "estacionId": 3, "gravedad": "Leve" }
+
+### FA-4.3 Mismo usuario reporta otra vez la misma bici (409 REPORTE_DUPLICADO)
+POST {{host}}/api/incidencias
+Authorization: Bearer {{tokenUsuario}}
+Content-Type: application/json
+
+{ "bicicletaId": 8, "estacionId": 3, "gravedad": "Intermedia" }
+
+### FP-4.2 Segundo reporte de OTRO usuario en la bici 7 → RN-05 → Reparación
+POST {{host}}/api/incidencias
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "bicicletaId": 7, "estacionId": 3, "gravedad": "Leve" }
+
+### Login técnico
+# @name loginTec
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "usuario": "sam3", "password": "12345" }
+
+###
+@tokenTec = {{loginTec.response.body.$.datos.token}}
+
+### FP-4.3 Fallas pendientes
+GET {{host}}/api/incidencias?estado=Pendiente
+Authorization: Bearer {{tokenTec}}
+
+### FP-4.4 Solucionar la falla 1 (bici 2) → vuelve a Disponible
+POST {{host}}/api/incidencias/1/atender
+Authorization: Bearer {{tokenTec}}
+Content-Type: application/json
+
+{ "diagnostico": "Cadena y frenos ajustados" }
+
+### FA-4.4 Solucionar otra vez la misma falla (409 INCIDENCIA_YA_ATENDIDA)
+POST {{host}}/api/incidencias/1/atender
+Authorization: Bearer {{tokenTec}}
+Content-Type: application/json
+
+{ }
+
+### FP-4.5 La bici 7 no tiene reparación: Dar de baja (estado final DadaDeBaja).
+###        También cierra la otra falla pendiente de la bici 7 (la del reporte FP-4.2)
+POST {{host}}/api/incidencias/2/baja
+Authorization: Bearer {{tokenTec}}
+Content-Type: application/json
+
+{ "diagnostico": "Marco fisurado, no se puede reparar" }
+
+### FA-4.5 Dar de baja otra vez la misma falla (409 INCIDENCIA_YA_ATENDIDA)
+POST {{host}}/api/incidencias/2/baja
+Authorization: Bearer {{tokenTec}}
+Content-Type: application/json
+
+{ }
+
+### FP-4.6 La bici 7 aparece "DadaDeBaja" y sin estación
+GET {{host}}/api/bicicletas/7
+Authorization: Bearer {{tokenTec}}
+
+### FA-4.6 Usuario normal intenta ver fallas (403 ACCESO_DENEGADO)
+GET {{host}}/api/incidencias?estado=Pendiente
+Authorization: Bearer {{tokenUsuario}}
+
+### FA-4.7 Técnico intenta cerrar una estación con reservas activas (409 ESTACION_CON_RESERVAS)
+### (ejecutar después de crear una reserva en la Estación 2)
+PUT {{host}}/api/estaciones/2/estado
+Authorization: Bearer {{tokenTec}}
+Content-Type: application/json
+
+{ "estado": "Cerrada" }
