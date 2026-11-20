@@ -8,7 +8,7 @@ reportar fallas y gestionar estaciones, flota, roles y mantenimiento.
 
 ## Integrantes
 
-| Integrante | Usuario GitHub | Principales contribuciones |
+| Integrante ||
 |---|---|---|
 | Camilo Andrés Vélez Luna | 
 | Samuel Castro Bedoya |
@@ -189,10 +189,4 @@ Para volver a los datos de prueba: detener el backend, borrar ese archivo y ejec
 - Diagramas de componentes y despliegue: _completar_
 - Diagramas de secuencia: _completar_
 
-## Evidencias del MVP
 
-_Agregar capturas en `docs/evidencias/` y enlazarlas aquí._
-
-## Uso de inteligencia artificial
-
-_Declarar las herramientas de IA utilizadas y en qué partes, como lo exige el Entregable 3._
